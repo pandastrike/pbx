@@ -22,7 +22,7 @@ These components include:
 
 * A client that uses [Shred][3] to generate HTTP API clients based on the API definition.
 
-* A builder for creating API definitions quickly, much like you can do with frameworks like [Restify][4] and [Express][5].
+* A builder for creating API definitions quickly, much like you can do with frameworks like [Restify][4] and [Express][5] (except the definitions are valid Patchboard API definitions and can be discovered/reflected upon).
 
 * A classifier for determining the `(resource, action)` pair associated with a given request.
 
