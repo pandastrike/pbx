@@ -36,6 +36,41 @@ describe "PBX", (context) ->
       assert.equal match.path.key, "my-blog"
       assert.equal match.action.name, "get"
 
+    # fold this into the example API
+    context.test "Classify with query parameters", ->
+      make_classifier = require "../src/classify"
+      classify = make_classifier
+        mappings:
+          user:
+            resource: "user"
+            path: "/users"
+            query:
+              login:
+                required: true
+                type: "string"
+        resources:
+          user:
+            actions:
+              get:
+                method: "GET"
+                response:
+                  type: "application/json"
+                  status: 200
+        schema:
+          definitions:
+            user:
+              mediaType: "application/json"
+
+      match = classify
+        url: "/users?login=dyoder"
+        method: "GET"
+        headers:
+          accept: "application/json"
+
+      assert.equal match.resource.name, "user"
+      assert.equal match.query.login, "dyoder"
+      assert.equal match.action.name, "get"
+
     context.test "Client", ->
 
       {describe} = require "../src/client"

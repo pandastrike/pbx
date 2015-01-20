@@ -12,17 +12,21 @@ class Builder
 
   constructor: (@name, @api = blank) ->
 
-  define: (name, {parent}={}) ->
-    parent ?= collection name
-    @map name, template: "/#{name}/:key"
+  define: (name, {path, template}={}) ->
+    if path?
+      @map name, {path}
+    else
+      template ?= "/#{name}/:key"
+      @map name, {template}
     @_schema(name).mediaType = "application/vnd.#{@name}.#{name}+json"
     proxy =
-      get: => @.get name; proxy
-      put: => @.put name; proxy
-      delete: => @.delete name; proxy
-      create: =>
+      get: => @get name; proxy
+      put: => @put name; proxy
+      delete: => @delete name; proxy
+      create: ({parent}) =>
+        parent ?= collection name
         @map parent, path: "/#{parent}"
-        @.create name, parent
+        @create name, parent
         proxy
 
   map: (name, spec) ->
@@ -38,12 +42,19 @@ class Builder
   _schema: (name) ->
     schema = @api.schema.definitions[name] ?= {}
 
-  get: (name) ->
+  get: (name, {type, description}={}) ->
+    type ?= "application/vnd.#{@name}.#{name}+json"
+
+    description ?= if @api.mappings[name].template?
+      "Returns a #{name} resource with the given key"
+    else
+      "Returns the #{name} resource"
+
     @_actions(name).get =
-      description: "Returns a #{name} resource with the given key"
+      description: description
       method: "GET"
       response:
-        type: "application/vnd.#{@name}.#{name}+json"
+        type: type
         status: 200
     @
 
@@ -70,5 +81,11 @@ class Builder
       request: type: "application/vnd.#{@name}.#{name}+json"
       response: status: 201
     @
+
+  reflect: ->
+    @map "description", path: "/"
+    @get "description",
+      type: "application/json"
+      description: "Returns a description of the API"
 
 module.exports = Builder

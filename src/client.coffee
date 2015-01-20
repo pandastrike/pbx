@@ -33,8 +33,9 @@ describe = (url, api) ->
 
   resource url, root
 
-discover = (url) ->
-  service = resource url,
+discover = (discovery, url) ->
+  url ?= discovery
+  service = resource discovery,
     description: (resource) ->
       resource "/",
         get:
