@@ -35,6 +35,7 @@ describe = (url, api) ->
 
 discover = (discovery, url) ->
   url ?= discovery
+  # Create a bootstrap service here to do the discovery
   service = resource discovery,
     description: (resource) ->
       resource "/",

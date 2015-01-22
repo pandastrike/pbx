@@ -7,7 +7,7 @@ builder.define "blog"
 .put()
 .delete()
 
-builder.define "post", template: "/blog/:blog/:post"
+builder.define "post", template: "/blog/:key/:index"
 .create parent: "blog"
 .get()
 .put()

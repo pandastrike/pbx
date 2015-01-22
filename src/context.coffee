@@ -1,6 +1,7 @@
 {type, include} = require "fairmont"
 {promise} = require "when"
 {call} = require "when/generator"
+{resolve} = require "url"
 
 # TODO: convert this to a real class definition
 module.exports = class Context
@@ -20,28 +21,43 @@ module.exports = class Context
           object[key]
         else
           component
-      "/" + components.join "/"
+
+      resolve context.api.base_url, (components.join "/")
 
     context.respond = (status, content="", headers={}) ->
       response.statusCode = status
-      headers["content-type"] =
-        if context.match?.action?.response?.type? &&
-        context.match.action.response.status == status
-          context.match.action.response.type
-        else
-          "text/plain;charset=utf-8"
+      content ?= "" # turn explicit null into ""
+
+      if context.match?.action?.response?
+        expected = context.match.action.response
+        # attempt to set the content-type based on the API definition
+        # presuming we're dealing with the expected response
+        if status == expected.status && expected.type?
+          headers["content-type"] = expected.type
+
+        # otherwise, don't set the content-type unless it's something
+        # besides an empty string and it isn't already set...
+        unless content == ""
+          headers["content-type"] ?= "text/plain;charset=utf-8"
+
       # TODO: allow for other formatting conventions
       # besides JSON
       # TODO: allow for responding with a stream
       for key, value of headers
         response.setHeader key, value
       if type(content) == "object"
-        response.write (JSON.stringify content)
+        response.write (JSON.stringify content, null, 2)
       else
         response.write content
       response.end()
 
-    context.error = ({status, message}) -> @respond status, message
+    context.error = (error) ->
+      if error.status?
+        {status, message} = error
+        @respond status, message
+      else
+        throw error
+
 
     # context.respond.not_implemented, and so on
     for error, fn of (require "./errors")

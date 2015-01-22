@@ -1,6 +1,10 @@
 validator = require "./validator"
 errors = require "./errors"
 
+# TODO: make this more sophisticated
+acceptable = (header, definition) ->
+  header == "*/*" || header == definition
+
 module.exports = (api) ->
 
   router = do (require "routington")
@@ -26,7 +30,7 @@ module.exports = (api) ->
       if (resource.query.validate query)
         match = { resource, path: param, query }
         if (match.action = resource?.actions?[request.method])?
-          if request.headers.accept == match.action.response?.type
+          if (acceptable request.headers.accept, match.action.response?.type)
             if request.headers["content-type"] == match.action.request?.type
               match
             else

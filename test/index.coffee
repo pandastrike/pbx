@@ -1,6 +1,10 @@
 assert = require "assert"
 {describe} = require "amen"
 api = require "./api"
+{liftAll} = require "when/node"
+{readFile} = (liftAll (require "fs"))
+{resolve, join} = require "path"
+YAML = require "js-yaml"
 
 describe "PBX", (context) ->
 
@@ -10,20 +14,28 @@ describe "PBX", (context) ->
     builder = new Builder "test"
 
     builder.define "blog"
-    .get()
-
-    builder.define "post", parent: "blog"
-    .create()
+    .create parent: "blogs"
     .get()
     .put()
     .delete()
+
+    builder.define "post", template: "/blog/:key/:index"
+    .create parent: "blog"
+    .get()
+    .put()
+    .delete()
+
+    builder.reflect()
+
+    yaml = (yield readFile (resolve (join __dirname, "api.yaml"))).toString()
+    api = YAML.safeLoad yaml
 
     assert.deepEqual builder.api, api
 
     context.test "Classify", ->
 
-      make_classifier = require "../src/classify"
-      classify = make_classifier builder.api
+      classifier = require "../src/classifier"
+      classify = classifier builder.api
 
       request =
         url: "/blog/my-blog"
@@ -38,8 +50,8 @@ describe "PBX", (context) ->
 
     # fold this into the example API
     context.test "Classify with query parameters", ->
-      make_classifier = require "../src/classify"
-      classify = make_classifier
+      classifier = require "../src/classifier"
+      classify = classifier
         mappings:
           user:
             resource: "user"
