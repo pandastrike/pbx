@@ -77,7 +77,7 @@ Let's serve up the API using the Node HTTP `createServer` method:
 
 ```coffee
 {call} = require "when/generator"
-processor = require "pbx"
+pbx = require "pbx"
 api = require "./api"
 
 call ->
@@ -216,14 +216,14 @@ We can now go back to our server and pass in our initializer function:
 
 ```coffee
 {call} = require "when/generator"
-processor = require "pbx"
+pbx = require "pbx"
 initialize = require "./handlers"
 api = require "./api"
 api.base_url = "http://localhost:8080"
 
 call ->
   (require "http")
-  .createServer yield (processor api, initialize)
+  .createServer yield (pbx api, initialize)
   .listen 8080
 ```
 

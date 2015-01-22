@@ -10,7 +10,7 @@ describe "PBX", (context) ->
 
   context.test "Build", ->
 
-    Builder = require "../src/build"
+    Builder = require "../src/builder"
     builder = new Builder "test"
 
     builder.define "blog"
