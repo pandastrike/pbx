@@ -1,6 +1,6 @@
 {
   "name": "pbx",
-  "version": "1.0.0-alpha-03",
+  "version": "1.0.0-alpha-04",
   "description": "Modular server implementation based on Patchboard API schema",
   "main": "lib/index.js",
   "directories": {
@@ -11,6 +11,10 @@
     "prepublish": "coffee --nodejs --harmony -o ./ -c src/*.*coffee",
     "watch": "coffee --nodejs --harmony -o lib/ -cw src/*.*coffee",
     "test": "coffee --nodejs --harmony test/index.coffee"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/pandastrike/pbx.git"
   },
   "author": "Dan Yoder <dan@pandastrike.com>",
   "license": "MIT",
