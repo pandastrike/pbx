@@ -76,13 +76,155 @@ $ curl 'http://acmeblogging.com/blog/my-blog/pbx-example'
 Let's serve up the API using the Node HTTP `createServer` method:
 
 ```coffee
-processor = require "pbx/processor"
+{call} = require "when/generator"
+processor = require "pbx"
+api = require "./api"
 
-(require "http")
-.createServer (processor builder.api, {})
-.listen 8080
+call ->
+  (require "http")
+  .createServer yield (pbx api, (-> {}))
+  .listen 8080
 ```
 
-If we run this, we'll have an HTTP server for our API running on port `8080` on `localhost`.
+If we run this, we'll have an HTTP server for our API running on port `8080` on `localhost`. We can even use `curl` to get a description of the interface:
 
-Wait, though…this API doesn't actually _do_ anything. We haven't created any behaviors to bind it to. That's why the handlers object passed into the processor above is empty: `{}`.
+```
+$ curl http://localhost:8080/ -H'accept: application/json'
+```
+
+Wait, though…this API doesn't actually _do_ anything. We haven't created any behaviors to bind it to. That's what's going on with the function we're passing into the `pbx` function, which returns an empty object literal: `(-> {})`.
+
+The `pbx` function takes our API definition and an initializer function that returns a set of handlers for each action defined by the API.
+
+> **Separation of Interface and Implementation** Defining the API _interface_ separate from the _implementation_ is different from most other HTTP libraries. One benefit of this separation is that we can generate our implementation based on the API, or even make it dynamic (say, using JavaScript proxies).
+
+> These dynamic implementation patterns are called _behaviors_. Behaviors open up a variety of possibilities for implementations. In this example, we'll simply define explicit handler functions for each action. But behaviors make it possible to encapsulate an reuse common patters (like storing a resource in a database).
+
+Let's define our initializer function, which will set up a connection to a database and then return the functions that use the connection for storing blogs and their associated posts.
+
+First, we set everything up.
+
+```coffee
+async = (require "when/generator").lift
+{call} = require "when/generator"
+{Memory} = require "pirate"
+
+make_key = -> (require "key-forge").randomKey 16, "base64url"
+```
+
+Our initializer function will return a promise&mdash;PBX supports either returning the handlers directly or returning a promise that resolves to the handlers&mdash;so we pull in some promise-related functions from the `when` promise library. We'll use `pirate` for storage. Finally, we'll use `key-forge` to generate guaranteed unique keys for our blogs. (In real life, we'd probably use something a bit more reader-friendly.)
+
+Let's initialize our storage and define the initializer function we're going to return to `pbx`.
+
+```coffee
+adapter = Memory.Adapter.make()
+
+
+module.exports = async ->
+
+  blogs = yield adapter.collection "blogs"
+```
+
+We now have a collection named `blogs` to store everything in. All we have to do now is return the handlers object.
+
+This is an object whose properties are objects that represent resources. Those objects in turn have properties that represent the actions each resource must implement.
+
+Let's start with making it possible to create new blogs:
+
+```coffee
+
+  blogs:
+
+    create: async ({respond, url, data}) ->
+      key = make_key()
+      yield blogs.put key, (yield data)
+      respond 201, "", location: url "blog", {key}
+
+```
+
+Easy enough. We generate a key for the blog, store the blog, and respond with a `201`. Handler functions are provided with a context object that includes a variety of helpful functions. Here, we're using argument destructuring to get the `respond`, `url`, and `data` helpers. You can learn more about these in the [API docs](./docs/api.md).
+
+Once we have a blog, we want to be able to post to it:
+
+```coffee
+
+  blog:
+
+    # create post
+    create: async ({respond, url, data,
+      match: { path: { key}}}) ->
+      blog = yield blogs.get key
+      blog.posts ?= []
+      index = blog.posts.length
+      post = yield data
+      post.index = index
+      blog.posts.push post
+      yield blogs.put key, blog
+      respond 201, "",
+      location: (url "post", {key, index})
+```
+
+And, of course, we'd like to be able to get blogs and blog posts, update them, and possibly delete them:
+
+```coffee
+    get: async ({respond, match: {path: {key}}}) ->
+      blog = yield blogs.get key
+      respond 200, blog
+
+    put: async ({respond, data,
+                 match: {path: {key}}}) ->
+      yield blogs.put key, (yield data)
+      respond 200
+
+    delete: async ({respond, match: {path: {key}}}) ->
+      yield blogs.delete key
+      respond 200
+
+  post:
+
+    get: async ({respond,
+    match: {path: {key, index}}}) ->
+      blog = yield blogs.get key
+      post = blog.posts?[index]
+      if post?
+        context.respond 200, post
+      else
+        context.respond.not_found()
+
+    put: async ({respond, data,
+    match: {path: {key, index}}}) ->
+      blog = yield blogs.get key
+      post = blog.posts?[index]
+      if post?
+        blog.posts[index] = (yield data)
+        respond 200
+      else
+        context.respond.not_found()
+
+    delete: async ({respond,
+    match: {path: {key, index}}}) ->
+      blog = yield blogs.get key
+      post = blog.posts?[index]
+      if post?
+        delete blog.posts[index]
+        context.respond 200
+      else
+        context.respond.not_found()
+```
+
+We can now go back to our server and pass in our initializer function:
+
+```coffee
+{call} = require "when/generator"
+processor = require "pbx"
+initialize = require "./handlers"
+api = require "./api"
+api.base_url = "http://localhost:8080"
+
+call ->
+  (require "http")
+  .createServer yield (processor api, initialize)
+  .listen 8080
+```
+
+We've added the `base_url` property to our API so that the `url` helper for the context can generate proper URLs for us. We'd normally get this value from a configuration file or environment variable.

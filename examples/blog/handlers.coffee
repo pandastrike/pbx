@@ -13,15 +13,16 @@ module.exports = async ->
 
   blogs:
 
-    create: async (context) ->
+    create: async ({respond, url, data}) ->
       key = make_key()
-      yield blogs.put key, (yield context.data)
-      context.respond 201, "", location: context.url "blog", {key}
+      yield blogs.put key, (yield data)
+      respond 201, "", location: url "blog", {key}
 
   blog:
 
     # create post
-    create: async ({respond, url, data, match: {path: {key}}}) ->
+    create: async ({respond, url, data,
+    match: {path: {key}}}) ->
       blog = yield blogs.get key
       blog.posts ?= []
       index = blog.posts.length
@@ -54,7 +55,8 @@ module.exports = async ->
       else
         context.respond.not_found()
 
-    put: async ({respond, data, match: {path: {key, index}}}) ->
+    put: async ({respond, data,
+    match: {path: {key, index}}}) ->
       blog = yield blogs.get key
       post = blog.posts?[index]
       if post?

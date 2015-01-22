@@ -1,3 +1,4 @@
+{resolve} = require "when"
 async = (require "when/generator").lift
 Context = require "./context"
 classifier = require "./classifier"
@@ -7,7 +8,8 @@ module.exports = async (api, initialize) ->
     # TODO: move classification into the context? con: outside of
     # url generation, the context class knows nothing of PBX
     classify = classifier api
-    handlers = yield initialize()
+
+    handlers = (yield (resolve initialize(api)))
 
     if api.resources.description?
       handlers.description ?=
