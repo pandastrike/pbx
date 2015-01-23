@@ -1,6 +1,27 @@
 Builder = require "../../src/builder"
 builder = new Builder "test"
 
+
+builder.define "cluster", template: "/cluster/:cluster_url"
+.create parent: "clusters"
+.get()
+.put()
+.delete()
+
+#builder.define "clusters"
+#.create parent: "clusters"
+#.get()
+#.put()
+#.delete()
+
+builder.define "users"
+.create parent: "users"
+.get()
+.put()
+.delete()
+
+
+
 builder.define "blog"
 .create parent: "blogs"
 .get()
