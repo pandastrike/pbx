@@ -16,15 +16,24 @@ amen.describe "Example blogging API", (context) ->
 
     context.test "Create a post", ->
 
-      {response: {headers: {locations}}} =
+      {response: {headers: {location}}} =
         (yield blog.create
           title: "My First Post"
           content: "This is my very first post.")
 
-      posts = (api.post location)
+      post = (api.post location)
+
+      context.test "Get a post", ->
+
+        {data} = yield post.get()
+        {title, content, index} = yield data
+        assert.equal index, 0
+        assert.equal title, "My First Post"
+        assert.equal content, "This is my very first post."
 
     context.test "Get a blog", ->
 
       {data} = yield blog.get()
       {posts} = yield data
       assert.equal posts.length, 1
+
