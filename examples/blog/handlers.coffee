@@ -21,8 +21,7 @@ module.exports = async ->
   blog:
 
     # create post
-    create: async ({respond, url, data,
-    match: {path: {key}}}) ->
+    create: async ({respond, url, data, match: {path: {key}}}) ->
       blog = yield blogs.get key
       blog.posts ?= []
       index = blog.posts.length
@@ -51,25 +50,24 @@ module.exports = async ->
       blog = yield blogs.get key
       post = blog.posts?[index]
       if post?
-        context.respond 200, post
+        respond 200, post
       else
-        context.respond.not_found()
+        respond.not_found()
 
-    put: async ({respond, data,
-    match: {path: {key, index}}}) ->
+    put: async ({respond, data, match: {path: {key, index}}}) ->
       blog = yield blogs.get key
       post = blog.posts?[index]
       if post?
         blog.posts[index] = (yield data)
         respond 200
       else
-        context.respond.not_found()
+        respond.not_found()
 
     delete: async ({respond, match: {path: {key, index}}}) ->
       blog = yield blogs.get key
       post = blog.posts?[index]
       if post?
         delete blog.posts[index]
-        context.respond 200
+        respond 200
       else
-        context.respond.not_found()
+        respond.not_found()
