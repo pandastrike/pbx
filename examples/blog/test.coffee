@@ -31,6 +31,19 @@ amen.describe "Example blogging API", (context) ->
         assert.equal title, "My First Post"
         assert.equal content, "This is my very first post."
 
+      context.test "Modify a post", ->
+
+        {response: {statusCode}} = yield post.put
+          title: "My first updated post"
+          content: "This is my very first post update."
+
+        assert.equal statusCode, 200
+
+        {data} = yield post.get()
+        {title, content, index} = yield data
+        assert.equal title, "My first updated post"
+        assert.equal content, "This is my very first post update."
+
     context.test "Get a blog", ->
 
       {data} = yield blog.get()
