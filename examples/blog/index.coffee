@@ -2,10 +2,15 @@
 processor = require "../../src/processor"
 initialize = require "./handlers"
 api = require "./api"
-api.base_url = "http://localhost:8080"
+
+options =
+  host: "127.0.0.1"
+  port: 8080
+
+api.base_url = "http://#{options.host}:#{options.port}"
 
 call ->
   (require "http")
   .createServer yield (processor api, initialize)
-  .listen 8080, ->
+  .listen options.port, ->
     console.log "pbx listening to #{api.base_url}"
