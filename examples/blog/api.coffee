@@ -7,6 +7,8 @@ builder.define "cluster", template: "/cluster/:cluster_url"
 .get()
 #.put()
 .delete()
+.post
+  creates: "post"
 
 builder.define "clusters"
 .get()

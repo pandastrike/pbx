@@ -7,4 +7,10 @@ module.exports = (schema) ->
       {valid} = validator.validate object
       valid
   else
-    (object) -> !(object?)
+    (object) ->
+      # handle null, undefined, or {}
+      # to mean 'empty query string'
+      unless object?
+        true
+      else
+        Object.keys(object).length == 0

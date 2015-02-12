@@ -45,16 +45,17 @@ First, let's define our API:
 
 ```coffee
 Builder = require "pbx/builder"
-builder = new Builder "blogly"
 
-builder.define "blog"
-.create parent: "blogs"
+builder.define "blogs", path: "/blogs"
+.post as: "create", creates: "blog"
+
+builder.define "blog", template: "/blogs/:key"
 .get()
 .put()
 .delete()
+.post creates: "post"
 
-builder.define "post", template: "/blog/:blog/:post"
-.create parent: "blog"
+builder.define "post", template: "/blog/:key/:index"
 .get()
 .put()
 .delete()
