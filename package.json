@@ -3,7 +3,6 @@
   "version": "1.0.0-alpha-10",
   "description": "Modular server implementation based on Patchboard API schema",
   "main": "index.js",
-  "files": [ "./index.js" ],
   "scripts": {
     "prepublish": "coffee --nodejs --harmony -o ./ -c src/*.*coffee",
     "watch": "coffee --nodejs --harmony -o lib/ -cw src/*.*coffee",
