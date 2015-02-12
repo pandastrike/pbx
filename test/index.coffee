@@ -1,6 +1,5 @@
 assert = require "assert"
 {describe} = require "amen"
-api = require "./api"
 {liftAll} = require "when/node"
 {readFile} = (liftAll (require "fs"))
 {resolve, join} = require "path"
@@ -13,24 +12,23 @@ describe "PBX", (context) ->
     Builder = require "../src/builder"
     builder = new Builder "test"
 
-    builder.define "blog"
-    .create parent: "blogs"
+    builder.define "blogs"
+    .post as: "create", creates: "blog"
+
+    builder.define "blog", template: "/blog/:key"
     .get()
     .put()
     .delete()
+    .post creates: "post"
 
     builder.define "post", template: "/blog/:key/:index"
-    .create parent: "blog"
     .get()
     .put()
     .delete()
 
     builder.reflect()
 
-    yaml = (yield readFile (resolve (join __dirname, "api.yaml"))).toString()
-    api = YAML.safeLoad yaml
-
-    assert.deepEqual builder.api, api
+    assert builder.api.resources.blogs?
 
     context.test "Classify", ->
 
@@ -86,7 +84,7 @@ describe "PBX", (context) ->
     context.test "Client", ->
 
       {describe} = require "../src/client"
-      client = describe "http://localhost", api
+      client = describe "http://localhost", builder.api
 
       assert.equal "curl -v -XGET http://localhost/blog/my-blog -H'accept: application/vnd.test.blog+json'",
         client

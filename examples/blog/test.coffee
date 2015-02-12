@@ -17,7 +17,7 @@ amen.describe "Example blogging API", (context) ->
     context.test "Create a post", ->
 
       {response: {headers: {locations}}} =
-        (yield blog.create
+        (yield blog.post
           title: "My First Post"
           content: "This is my very first post.")
 

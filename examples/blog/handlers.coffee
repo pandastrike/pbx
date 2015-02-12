@@ -21,7 +21,7 @@ module.exports = async ->
   blog:
 
     # create post
-    create: async ({respond, url, data,
+    post: async ({respond, url, data,
     match: {path: {key}}}) ->
       blog = yield blogs.get key
       blog.posts ?= []

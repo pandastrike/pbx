@@ -1,12 +1,11 @@
 {
   "name": "pbx",
-  "version": "1.0.0-alpha-05",
+  "version": "1.0.0-alpha-06",
   "description": "Modular server implementation based on Patchboard API schema",
   "main": "lib/index.js",
   "directories": {
     "test": "test"
   },
-
   "scripts": {
     "prepublish": "coffee --nodejs --harmony -o ./ -c src/*.*coffee",
     "watch": "coffee --nodejs --harmony -o lib/ -cw src/*.*coffee",
@@ -21,7 +20,7 @@
   "devDependencies": {
     "amen": "^1.0.0-alpha-03",
     "js-yaml": "^3.2.5",
-    "pirate": "git://github.com/pandastrike/pirate.git#57d404"
+    "pirate": "^1.0.0-alpha-05"
   },
   "dependencies": {
     "jsck": "^0.2.1",
@@ -29,5 +28,8 @@
     "routington": "^1.0.2",
     "shred": "^1.1.0-alpha-03",
     "when": "^3.6.3"
+  },
+  "engines" : {
+    "node" : ">=0.11 < 0.12"
   }
 }
