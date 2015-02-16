@@ -46,19 +46,36 @@ First, let's define our API:
 ```coffee
 Builder = require "pbx/builder"
 
-builder.define "blogs", path: "/blogs"
-.post as: "create", creates: "blog"
+builder.define "blogs",
+  path: "/blogs"
+.post
+  as: "create"
+  creates: "blog"
 
-builder.define "blog", template: "/blogs/:key"
+builder.define "blog",
+  template: "/blogs/:name"
 .get()
 .put()
 .delete()
-.post creates: "post"
+.post
+  creates: "post"
+.schema
+  required: ["name", "title"]
+  properties:
+    name: type: "string"
+    title: type: "string"
 
-builder.define "post", template: "/blog/:key/:index"
+builder.define "post",
+  template: "/blog/:name/:key"
 .get()
 .put()
 .delete()
+.schema
+  required: ["key", "title", "content"]
+  properties:
+    key: type: "string"
+    title: type: "string"
+    content: type: "string"
 
 builder.reflect()
 
@@ -101,131 +118,4 @@ The `pbx` function takes our API definition and an initializer function that ret
 
 > These dynamic implementation patterns are called _behaviors_. Behaviors open up a variety of possibilities for implementations. In this example, we'll simply define explicit handler functions for each action. But behaviors make it possible to encapsulate an reuse common patters (like storing a resource in a database).
 
-Let's define our initializer function, which will set up a connection to a database and then return the functions that use the connection for storing blogs and their associated posts.
-
-First, we set everything up.
-
-```coffee
-async = (require "when/generator").lift
-{call} = require "when/generator"
-{Memory} = require "pirate"
-
-make_key = -> (require "key-forge").randomKey 16, "base64url"
-```
-
-Our initializer function will return a promise&mdash;PBX supports either returning the handlers directly or returning a promise that resolves to the handlers&mdash;so we pull in some promise-related functions from the `when` promise library. We'll use `pirate` for storage. Finally, we'll use `key-forge` to generate guaranteed unique keys for our blogs. (In real life, we'd probably use something a bit more reader-friendly.)
-
-Let's initialize our storage and define the initializer function we're going to return to `pbx`.
-
-```coffee
-adapter = Memory.Adapter.make()
-
-
-module.exports = async ->
-
-  blogs = yield adapter.collection "blogs"
-```
-
-We now have a collection named `blogs` to store everything in. All we have to do now is return the handlers object.
-
-This is an object whose properties are objects that represent resources. Those objects in turn have properties that represent the actions each resource must implement.
-
-Let's start with making it possible to create new blogs:
-
-```coffee
-
-  blogs:
-
-    create: async ({respond, url, data}) ->
-      key = make_key()
-      yield blogs.put key, (yield data)
-      respond 201, "", location: url "blog", {key}
-
-```
-
-Easy enough. We generate a key for the blog, store the blog, and respond with a `201`. Handler functions are provided with a context object that includes a variety of helpful functions. Here, we're using argument destructuring to get the `respond`, `url`, and `data` helpers. You can learn more about these in the [API docs](./docs/api.md).
-
-Once we have a blog, we want to be able to post to it:
-
-```coffee
-
-  blog:
-
-    # create post
-    create: async ({respond, url, data,
-      match: { path: { key}}}) ->
-      blog = yield blogs.get key
-      blog.posts ?= []
-      index = blog.posts.length
-      post = yield data
-      post.index = index
-      blog.posts.push post
-      yield blogs.put key, blog
-      respond 201, "",
-      location: (url "post", {key, index})
-```
-
-And, of course, we'd like to be able to get blogs and blog posts, update them, and possibly delete them:
-
-```coffee
-    get: async ({respond, match: {path: {key}}}) ->
-      blog = yield blogs.get key
-      respond 200, blog
-
-    put: async ({respond, data,
-                 match: {path: {key}}}) ->
-      yield blogs.put key, (yield data)
-      respond 200
-
-    delete: async ({respond, match: {path: {key}}}) ->
-      yield blogs.delete key
-      respond 200
-
-  post:
-
-    get: async ({respond,
-    match: {path: {key, index}}}) ->
-      blog = yield blogs.get key
-      post = blog.posts?[index]
-      if post?
-        context.respond 200, post
-      else
-        context.respond.not_found()
-
-    put: async ({respond, data,
-    match: {path: {key, index}}}) ->
-      blog = yield blogs.get key
-      post = blog.posts?[index]
-      if post?
-        blog.posts[index] = (yield data)
-        respond 200
-      else
-        context.respond.not_found()
-
-    delete: async ({respond,
-    match: {path: {key, index}}}) ->
-      blog = yield blogs.get key
-      post = blog.posts?[index]
-      if post?
-        delete blog.posts[index]
-        context.respond 200
-      else
-        context.respond.not_found()
-```
-
-We can now go back to our server and pass in our initializer function:
-
-```coffee
-{call} = require "when/generator"
-pbx = require "pbx"
-initialize = require "./handlers"
-api = require "./api"
-api.base_url = "http://localhost:8080"
-
-call ->
-  (require "http")
-  .createServer yield (pbx api, initialize)
-  .listen 8080
-```
-
-We've added the `base_url` property to our API so that the `url` helper for the context can generate proper URLs for us. We'd normally get this value from a configuration file or environment variable.
+See the [example app](./examples/blog/) for more.
