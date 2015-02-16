@@ -8,29 +8,29 @@ builder.define "blogs",
   creates: "blog"
 
 builder.define "blog",
-  template: "/blogs/:key"
+  template: "/blogs/:name"
 .get()
 .put()
 .delete()
 .post
   creates: "post"
 .schema
-  required: ["title"]
+  required: ["name", "title"]
   properties:
-    key: type: "string"
+    name: type: "string"
     title: type: "string"
 
 builder.define "post",
-  template: "/blog/:key/:index"
+  template: "/blog/:name/:key"
 .get()
 .put()
 .delete()
 .schema
-  required: ["title", "content"]
+  required: ["key", "title", "content"]
   properties:
     key: type: "string"
     title: type: "string"
-    index: type: "string"
+    content: type: "string"
 
 builder.reflect()
 

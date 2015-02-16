@@ -14,62 +14,59 @@ module.exports = async ->
   blogs:
 
     create: validate async ({respond, url, data}) ->
-      key = make_key()
-      yield blogs.put key, (yield data)
-      respond 201, "", location: url "blog", {key}
+      blog = (yield data)
+      {name} = blog
+      blog.posts = {}
+      yield blogs.put name, blog
+      respond 201, "", location: url "blog", {name}
 
   blog:
 
     # create post
     post: validate async ({respond, url, data,
-    match: {path: {key}}}) ->
-      blog = yield blogs.get key
-      blog.posts ?= []
-      index = blog.posts.length
+    match: {path: {name}}}) ->
+      blog = yield blogs.get name
       post = yield data
-      post.index = index
-      blog.posts.push post
-      yield blogs.put key, blog
+      {key} = post
+      blog.posts[key] = post
+      yield blogs.put name, blog
       respond 201, "",
-        location: (url "post", {key, index})
+        location: (url "post", {name, key})
 
-    get: async ({respond, match: {path: {key}}}) ->
-      blog = yield blogs.get key
+    get: async ({respond, match: {path: {name}}}) ->
+      blog = yield blogs.get name
       respond 200, blog
 
-    put: validate async ({respond, data, match: {path: {key}}}) ->
-      yield blogs.put key, (yield data)
+    put: validate async ({respond, data, match: {path: {name}}}) ->
+      yield blogs.put name, (yield data)
       respond 200
 
-    delete: async ({respond, match: {path: {key}}}) ->
-      yield blogs.delete key
+    delete: async ({respond, match: {path: {name}}}) ->
+      yield blogs.delete name
       respond 200
 
   post:
 
-    get: async ({respond, match: {path: {key, index}}}) ->
-      blog = yield blogs.get key
-      post = blog.posts?[index]
-      if post?
+    get: async ({respond, match: {path: {name, key}}}) ->
+      blog = yield blogs.get name
+      if (post = blog.posts[key])?
         context.respond 200, post
       else
         context.respond.not_found()
 
     put: validate async ({respond, data,
-    match: {path: {key, index}}}) ->
-      blog = yield blogs.get key
-      post = blog.posts?[index]
-      if post?
-        blog.posts[index] = (yield data)
+    match: {path: {name, key}}}) ->
+      blog = yield blogs.get name
+      if (post = blog.posts[key])?
+        blog.posts[key] = (yield data)
         respond 200
       else
         context.respond.not_found()
 
-    delete: async ({respond, match: {path: {key, index}}}) ->
-      blog = yield blogs.get key
-      post = blog.posts?[index]
-      if post?
-        delete blog.posts[index]
+    delete: async ({respond, match: {path: {name, key}}}) ->
+      blog = yield blogs.get name
+      if (post = blog.posts[key])?
+        delete blog.posts[key]
         context.respond 200
       else
         context.respond.not_found()

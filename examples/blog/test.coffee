@@ -10,14 +10,15 @@ amen.describe "Example blogging API", (context) ->
     api = yield discover "http://localhost:8080"
 
     {response: {headers: {location}}} =
-      (yield api.blogs.create title: "My Blog")
+      (yield api.blogs.create name: "my-blog", title: "My Blog")
 
     blog = (api.blog location)
 
     context.test "Create a post", ->
 
-      {response: {headers: {locations}}} =
+      {response: {headers: {location}}} =
         (yield blog.post
+          key: "my-first-post"
           title: "My First Post"
           content: "This is my very first post.")
 
@@ -27,4 +28,4 @@ amen.describe "Example blogging API", (context) ->
 
       {data} = yield blog.get()
       {posts} = yield data
-      assert.equal posts.length, 1
+      assert posts["my-first-post"]?
