@@ -1,1 +1,1 @@
-module.exports = require "processor"
+module.exports = require "./processor"
