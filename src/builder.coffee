@@ -1,4 +1,4 @@
-{merge} = require "fairmont"
+{include, merge} = require "fairmont"
 
 class Builder
 
@@ -30,6 +30,9 @@ class Builder
       put: (options={}) => @put name, options; proxy
       delete: (options={}) => @delete name, options; proxy
       post: (options={}) => @post name, options; proxy
+      schema: (definition) =>
+        include @api.schema.definitions[name], definition
+        @
 
   map: (name, spec) ->
     @api.mappings[name] ?= merge spec,

@@ -1,6 +1,6 @@
 {resolve} = require "when"
 async = (require "when/generator").lift
-JSCK = require("jsck").draft3
+JSCK = require("jsck").draft4
 Context = require "./context"
 classifier = require "./classifier"
 

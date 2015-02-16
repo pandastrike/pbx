@@ -14,12 +14,23 @@ builder.define "blog",
 .delete()
 .post
   creates: "post"
+.schema
+  required: ["title"]
+  properties:
+    key: type: "string"
+    title: type: "string"
 
 builder.define "post",
   template: "/blog/:key/:index"
 .get()
 .put()
 .delete()
+.schema
+  required: ["title", "content"]
+  properties:
+    key: type: "string"
+    title: type: "string"
+    index: type: "string"
 
 builder.reflect()
 
