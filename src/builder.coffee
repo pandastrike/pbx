@@ -1,16 +1,22 @@
 {merge} = require "fairmont"
 
-blank =
-  mappings: {}
-  resources: {}
-  schema: { definitions: {}}
-
-collection = (name) ->
-  "#{name}_collection"
-
 class Builder
 
-  constructor: (@name, @api = blank) ->
+  constructor: (@name, @api) ->
+    @api ?=
+      mappings: {}
+      resources: {}
+      schema:
+        id: "urn:#{@name}"
+        definitions:
+          resource:
+            id: "#resource"
+            type: "object"
+            properties:
+              url:
+                type: "string"
+                format: "uri"
+                readonly: true
 
   define: (name, {path, template}={}) ->
     if template?
@@ -18,7 +24,7 @@ class Builder
     else
       path ?= "/#{name}"
       @map name, {path}
-    @_schema(name).mediaType = "application/vnd.#{@name}.#{name}+json"
+    @_schema(name)
     proxy =
       get: (options={}) => @get name, options; proxy
       put: (options={}) => @put name, options; proxy
@@ -35,7 +41,13 @@ class Builder
     resource.actions ?= {}
 
   _schema: (name) ->
-    schema = @api.schema.definitions[name] ?= {}
+    @api.schema.definitions[name] ?=
+      extends: {$ref: "urn:#{@name}#resource"}
+      mediaType: (@media_type name)
+      id: "##{name}"
+      type: "object"
+
+  media_type: (name) -> "application/vnd.#{@name}.#{name}+json"
 
   get: (name, {as, type, description}={}) ->
     as ?= "get"

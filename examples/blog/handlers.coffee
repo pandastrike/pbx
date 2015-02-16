@@ -1,11 +1,11 @@
 async = (require "when/generator").lift
 {call} = require "when/generator"
 {Memory} = require "pirate"
+validate = require "../../src/filters/validate"
 
 make_key = -> (require "key-forge").randomKey 16, "base64url"
 
 adapter = Memory.Adapter.make()
-
 
 module.exports = async ->
 
@@ -13,7 +13,7 @@ module.exports = async ->
 
   blogs:
 
-    create: async ({respond, url, data}) ->
+    create: validate async ({respond, url, data}) ->
       key = make_key()
       yield blogs.put key, (yield data)
       respond 201, "", location: url "blog", {key}
@@ -21,7 +21,7 @@ module.exports = async ->
   blog:
 
     # create post
-    post: async ({respond, url, data,
+    post: validate async ({respond, url, data,
     match: {path: {key}}}) ->
       blog = yield blogs.get key
       blog.posts ?= []
@@ -37,7 +37,7 @@ module.exports = async ->
       blog = yield blogs.get key
       respond 200, blog
 
-    put: async ({respond, data, match: {path: {key}}}) ->
+    put: validate async ({respond, data, match: {path: {key}}}) ->
       yield blogs.put key, (yield data)
       respond 200
 
@@ -55,7 +55,7 @@ module.exports = async ->
       else
         context.respond.not_found()
 
-    put: async ({respond, data,
+    put: validate async ({respond, data,
     match: {path: {key, index}}}) ->
       blog = yield blogs.get key
       post = blog.posts?[index]

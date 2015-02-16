@@ -1,5 +1,5 @@
 Builder = require "../../src/builder"
-builder = new Builder "test"
+builder = new Builder "blog-api"
 
 builder.define "blogs",
   path: "/blogs"
