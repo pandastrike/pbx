@@ -52,7 +52,7 @@ module.exports = async ->
       if (post = blog.posts[key])?
         context.respond 200, post
       else
-        context.respond.not_found()
+        respond.not_found()
 
     put: validate async ({respond, data,
     match: {path: {name, key}}}) ->
@@ -61,12 +61,12 @@ module.exports = async ->
         blog.posts[key] = (yield data)
         respond 200
       else
-        context.respond.not_found()
+        respond.not_found()
 
     delete: async ({respond, match: {path: {name, key}}}) ->
       blog = yield blogs.get name
       if (post = blog.posts[key])?
         delete blog.posts[key]
-        context.respond 200
+        respond 200
       else
-        context.respond.not_found()
+        respond.not_found()
