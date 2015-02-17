@@ -22,7 +22,29 @@ amen.describe "Example blogging API", (context) ->
           title: "My First Post"
           content: "This is my very first post.")
 
-      posts = (api.post location)
+      post = (api.post location)
+
+      context.test "Get a post", ->
+
+        {data} = yield post.get()
+        {title, content, key} = yield data
+        assert key == "my-first-post"
+        assert title == "My First Post"
+        assert content == "This is my very first post."
+
+      context.test "Modify a post", ->
+
+        {response: {statusCode}} = yield post.put
+          key: "my-first-post"
+          title: "My first updated post"
+          content: "This is my very first post update."
+
+        assert statusCode == 200
+
+        {data} = yield post.get()
+        {title, content} = yield data
+        assert title == "My first updated post"
+        assert content == "This is my very first post update."
 
     context.test "Get a blog", ->
 

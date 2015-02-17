@@ -23,8 +23,7 @@ module.exports = async ->
   blog:
 
     # create post
-    post: validate async ({respond, url, data,
-    match: {path: {name}}}) ->
+    post: validate async ({respond, url, data, match: {path: {name}}}) ->
       blog = yield blogs.get name
       post = yield data
       {key} = post
@@ -50,12 +49,11 @@ module.exports = async ->
     get: async ({respond, match: {path: {name, key}}}) ->
       blog = yield blogs.get name
       if (post = blog.posts[key])?
-        context.respond 200, post
+        respond 200, post
       else
         respond.not_found()
 
-    put: validate async ({respond, data,
-    match: {path: {name, key}}}) ->
+    put: validate async ({respond, data, match: {path: {name, key}}}) ->
       blog = yield blogs.get name
       if (post = blog.posts[key])?
         blog.posts[key] = (yield data)
