@@ -44,7 +44,7 @@ These components include:
 First, let's define our API:
 
 ```coffee
-Builder = require "pbx/builder"
+{Builder} = require "pbx"
 
 builder.define "blogs",
   path: "/blogs"
@@ -95,12 +95,12 @@ Let's serve up the API using the Node HTTP `createServer` method:
 
 ```coffee
 {call} = require "when/generator"
-pbx = require "pbx"
+{processor} = require "pbx"
 api = require "./api"
 
 call ->
   (require "http")
-  .createServer yield (pbx api, (-> {}))
+  .createServer yield (processor api, (-> {}))
   .listen 8080
 ```
 
