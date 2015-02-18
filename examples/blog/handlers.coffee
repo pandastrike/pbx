@@ -1,7 +1,7 @@
 async = (require "when/generator").lift
 {call} = require "when/generator"
 {Memory} = require "pirate"
-validate = require "../../src/filters/validate"
+{validate} = (require "../../src").filters
 
 make_key = -> (require "key-forge").randomKey 16, "base64url"
 

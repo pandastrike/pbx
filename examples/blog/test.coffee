@@ -1,5 +1,5 @@
 {call} = require "when/generator"
-{discover} = require "../../src/client"
+{discover} = (require "../../src").client
 amen = require "amen"
 assert = require "assert"
 
