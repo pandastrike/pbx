@@ -9,7 +9,7 @@ describe "PBX", (context) ->
 
   context.test "Build", ->
 
-    Builder = require "../src/builder"
+    {Builder} = require "../src"
     builder = new Builder "test"
 
     builder.define "blogs"
@@ -32,7 +32,7 @@ describe "PBX", (context) ->
 
     context.test "Classify", ->
 
-      classifier = require "../src/classifier"
+      {classifier} = require "../src"
       classify = classifier builder.api
 
       request =
@@ -48,7 +48,7 @@ describe "PBX", (context) ->
 
     # fold this into the example API
     context.test "Classify with query parameters", ->
-      classifier = require "../src/classifier"
+      {classifier} = require "../src"
       classify = classifier
         mappings:
           user:
@@ -83,7 +83,7 @@ describe "PBX", (context) ->
 
     context.test "Client", ->
 
-      {describe} = require "../src/client"
+      {describe} = (require "../src").client
       client = describe "http://localhost", builder.api
 
       assert.equal "curl -v -XGET http://localhost/blog/my-blog -H'accept: application/vnd.test.blog+json'",

@@ -1,5 +1,5 @@
 {call} = require "when/generator"
-processor = require "../../src/processor"
+{processor} = require "../../src"
 initialize = require "./handlers"
 api = require "./api"
 api.base_url = "http://localhost:8080"

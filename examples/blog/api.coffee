@@ -1,4 +1,4 @@
-Builder = require "../../src/builder"
+{Builder} = require "../../src"
 builder = new Builder "blog-api"
 
 builder.define "blogs",
