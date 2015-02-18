@@ -2,10 +2,10 @@
   "name": "pbx",
   "version": "1.0.0-alpha-13",
   "description": "Modular server implementation based on Patchboard API schema",
-  "main": "index.js",
+  "main": "lib/index.js",
   "scripts": {
-    "prepublish": "coffee --nodejs --harmony -o ./ -c src/*.*coffee",
-    "watch": "coffee --nodejs --harmony -o lib/ -cw src/*.*coffee",
+    "prepublish": "coffee --nodejs --harmony --compile -o ./lib ./src",
+    "watch": "coffee --nodejs --harmony --compile --watch -o lib/ ./src",
     "test": "coffee --nodejs --harmony test/index.coffee"
   },
   "repository": {
