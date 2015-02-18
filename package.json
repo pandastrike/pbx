@@ -1,6 +1,6 @@
 {
   "name": "pbx",
-  "version": "1.0.0-alpha-13",
+  "version": "1.0.0-alpha-14",
   "description": "Modular server implementation based on Patchboard API schema",
   "main": "lib/index.js",
   "scripts": {
