@@ -42,15 +42,19 @@ module.exports = class Context
         unless content == ""
           headers["content-type"] ?= "text/plain;charset=utf-8"
 
-      # TODO: allow for other formatting conventions
-      # besides JSON
-      # TODO: allow for responding with a stream
       for key, value of headers
         response.setHeader key, value
-      if type(content) == "object"
-        response.write (JSON.stringify content, null, 2)
-      else
+      
+      # if `content` is a string or a Buffer, write it directly
+      # otherwise, we must convert it
+      # TODO: allow for responding with a stream
+      # TODO: allow for other formatting conventions
+      # besides JSON
+      if type(content) == "string" || content instanceof Buffer
         response.write content
+      else
+        response.write (JSON.stringify content, null, 2)
+
       response.end()
 
     context.error = (error) ->
