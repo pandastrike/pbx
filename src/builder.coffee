@@ -108,9 +108,9 @@ class Builder
         description: description
         method: "POST"
         request:
-          type: request.type
+          type: type.request
         response:
-          type: response.type
+          type: type.response
           status: 200
       @
 
