@@ -3,6 +3,7 @@ assert = require "assert"
 {liftAll} = require "when/node"
 {readFile} = (liftAll (require "fs"))
 {resolve, join} = require "path"
+httpMocks = require "node-mocks-http"
 YAML = require "js-yaml"
 
 describe "PBX", (context) ->
@@ -80,6 +81,35 @@ describe "PBX", (context) ->
       assert.equal match.resource.name, "user"
       assert.equal match.query.login, "dyoder"
       assert.equal match.action.name, "get"
+
+    context.test "Context", (context) ->
+      Context = require "../src/context"
+
+      TestData =
+        'string': "success"
+        'object': { "foo": "bar" }
+        'array': [1, 2, {"foo": "bar"}]
+
+      for type, data of TestData
+        context.test "Respond with #{type}", ->
+          # we need to mock a request and response to use the context
+          request = httpMocks.createRequest 
+            method: 'GET'
+            url: '/users'
+
+          # the mock request does not include `on`, but the context expects it
+          request.on ?= ->
+
+          response = httpMocks.createResponse()
+
+          ctx = Context.make {request, response, api: builder.api}
+          ctx.respond 200, data
+
+          assert.equal 200, response._getStatusCode()
+          if type == 'string'
+            assert.equal data, response._getData()
+          else
+            assert.deepEqual data, JSON.parse response._getData()
 
     context.test "Client", ->
 

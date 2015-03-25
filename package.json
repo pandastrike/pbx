@@ -17,6 +17,7 @@
   "devDependencies": {
     "amen": "^1.0.0-alpha-03",
     "js-yaml": "^3.2.5",
+    "node-mocks-http": "^1.2.7",
     "pirate": "^1.0.0-alpha-05"
   },
   "dependencies": {
@@ -26,7 +27,7 @@
     "shred": "^1.1.0-alpha-03",
     "when": "^3.6.3"
   },
-  "engines" : {
-    "node" : ">=0.11 < 0.12"
+  "engines": {
+    "node": ">=0.11 < 0.12"
   }
 }
