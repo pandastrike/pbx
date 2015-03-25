@@ -89,6 +89,7 @@ describe "PBX", (context) ->
         'string': "success"
         'object': { "foo": "bar" }
         'array': [1, 2, {"foo": "bar"}]
+        'buffer': new Buffer "success"
 
       for type, data of TestData
         context.test "Respond with #{type}", ->
@@ -106,8 +107,8 @@ describe "PBX", (context) ->
           ctx.respond 200, data
 
           assert.equal 200, response._getStatusCode()
-          if type == 'string'
-            assert.equal data, response._getData()
+          if type == 'string' or type == 'buffer'
+            assert.equal data.toString(), response._getData()
           else
             assert.deepEqual data, JSON.parse response._getData()
 
