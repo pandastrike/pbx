@@ -25,7 +25,6 @@ amen.describe "Example blogging API", (context) ->
       post = (api.post location)
 
       context.test "Get a post", ->
-
         {data} = yield post.get()
         {title, content, key} = yield data
         assert key == "my-first-post"
@@ -45,6 +44,16 @@ amen.describe "Example blogging API", (context) ->
         {title, content} = yield data
         assert title == "My first updated post"
         assert content == "This is my very first post update."
+
+      context.test "Modify a post (with auth)", ->
+
+        {response: {statusCode}} = yield post.put
+        .authorize token: "12345"
+        .invoke
+          key: "my-first-post"
+          title: "My first updated post"
+          content: "This is my very first post update."
+
 
     context.test "Get a blog", ->
 
