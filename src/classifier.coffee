@@ -7,9 +7,9 @@ acceptable = (header, definition) ->
 
 validator = (schema) ->
   if schema?
-    validator = (new JSCK {properties: schema})
+    _validator = (new JSCK {properties: schema})
     (object) ->
-      {valid} = validator.validate object
+      {valid} = _validator.validate object
       valid
   else
     (object) ->
@@ -26,7 +26,7 @@ module.exports = (api) ->
 
   for rname, resource of api.resources
     {path, template, query} = api.mappings[rname]
-    path ?= template
+    path ?= if template? then template else url
     [node] = router.define path
     node.resource =
       name: rname

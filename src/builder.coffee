@@ -18,12 +18,16 @@ class Builder
                 format: "uri"
                 readonly: true
 
-  define: (name, {path, template}={}) ->
+  define: (name, {url, path, template, query}={}) ->
     if template?
       @map name, {template}
+    else if url?
+      @map name, {url: url}
     else
       path ?= "/#{name}"
       @map name, {path}
+    if query?
+      @map name, {query}
     @_schema(name)
     proxy =
       get: (options={}) => @get name, options; proxy
@@ -35,8 +39,7 @@ class Builder
         @
 
   map: (name, spec) ->
-    @api.mappings[name] ?= merge spec,
-      resource: name
+    include (@api.mappings[name] ?= resource: name), spec
     @
 
   _actions: (name) ->

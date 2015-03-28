@@ -1,9 +1,5 @@
 assert = require "assert"
 {describe} = require "amen"
-{liftAll} = require "when/node"
-{readFile} = (liftAll (require "fs"))
-{resolve, join} = require "path"
-YAML = require "js-yaml"
 
 describe "PBX", (context) ->
 
@@ -11,6 +7,14 @@ describe "PBX", (context) ->
 
     {Builder} = require "../src"
     builder = new Builder "test"
+
+    builder.define "author",
+      path: "/author"
+      query:
+        email: type: "string", required: true
+    .get()
+    .put()
+    .delete()
 
     builder.define "blogs"
     .post as: "create", creates: "blog"
@@ -30,10 +34,10 @@ describe "PBX", (context) ->
 
     assert builder.api.resources.blogs?
 
-    context.test "Classify", ->
+    {classifier} = require "../src"
+    classify = classifier builder.api
 
-      {classifier} = require "../src"
-      classify = classifier builder.api
+    context.test "Classify", ->
 
       request =
         url: "/blog/my-blog"
@@ -46,40 +50,29 @@ describe "PBX", (context) ->
       assert.equal match.path.key, "my-blog"
       assert.equal match.action.name, "get"
 
-    # fold this into the example API
     context.test "Classify with query parameters", ->
-      {classifier} = require "../src"
-      classify = classifier
-        mappings:
-          user:
-            resource: "user"
-            path: "/users"
-            query:
-              login:
-                required: true
-                type: "string"
-        resources:
-          user:
-            actions:
-              get:
-                method: "GET"
-                response:
-                  type: "application/json"
-                  status: 200
-        schema:
-          definitions:
-            user:
-              mediaType: "application/json"
 
       match = classify
-        url: "/users?login=dyoder"
+        url: "/author?email=danielyoder@gmail.com"
         method: "GET"
         headers:
-          accept: "application/json"
+          accept: "application/vnd.test.author+json"
 
-      assert.equal match.resource.name, "user"
-      assert.equal match.query.login, "dyoder"
+      assert.equal match.resource.name, "author"
+      assert.equal match.query.email, "danielyoder@gmail.com"
       assert.equal match.action.name, "get"
+
+    context.test "Classify with missing query parameter", ->
+      try
+        classify
+          url: "/author"
+          method: "GET"
+          headers:
+            accept: "application/vnd.test.author+json"
+        assert false
+      catch error
+        assert error.status == "404"
+        assert error.message == "Not Found"
 
     context.test "Client", ->
 
