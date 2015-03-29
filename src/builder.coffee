@@ -112,8 +112,7 @@ class Builder
       @_actions(name)[as] =
         description: description
         method: "POST"
-        request:
-          type: type.request, authorization
+        request: {type: type.request, authorization}
         response:
           type: type.response
           status: 200

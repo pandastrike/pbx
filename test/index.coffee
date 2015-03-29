@@ -1,5 +1,6 @@
 assert = require "assert"
 {describe} = require "amen"
+{is_string, deep_equal} = require "fairmont"
 
 describe "PBX", (context) ->
 
@@ -146,6 +147,36 @@ describe "PBX", (context) ->
           console.log error
           assert error.status == "401"
           assert error.message == "Unauthorized"
+
+    context.test "Context", (context) ->
+      Context = require "../src/context"
+
+      cases =
+        'string': "success"
+        'object': { "foo": "bar" }
+        'array': [1, 2, {"foo": "bar"}]
+
+      for type, data of cases
+        context.test "Context respond with #{type}", ->
+          request =
+            method: 'GET'
+            url: '/users'
+            headers: {}
+            on: ->
+          response =
+            setHeader: ->
+            write: (s) ->
+              @content ?= ""
+              @content += s
+            end: ->
+
+          ctx = Context.make {request, response, api: builder.api}
+          ctx.respond 200, data
+          # TODO: this test is not functional enough
+          if is_string data
+            assert data == response.content
+          else
+            assert deep_equal data, JSON.parse response.content
 
     context.test "Client", ->
 

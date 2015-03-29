@@ -1,8 +1,10 @@
-{type, include} = require "fairmont"
+{include, is_string} = require "fairmont"
 {promise} = require "when"
 {call, lift} = require "when/generator"
 async = lift
 {resolve} = require "url"
+to_json = (x) -> JSON.stringify x, null, 2
+
 
 # TODO: convert this to a real class definition
 module.exports = class Context
@@ -42,15 +44,12 @@ module.exports = class Context
         unless content == ""
           headers["content-type"] ?= "text/plain;charset=utf-8"
 
-      # TODO: allow for other formatting conventions
-      # besides JSON
-      # TODO: allow for responding with a stream
       for key, value of headers
         response.setHeader key, value
-      if type(content) == "object"
-        response.write (JSON.stringify content, null, 2)
-      else
-        response.write content
+
+      # TODO: allow for responding with a stream
+      # TODO: allow for other formatting conventions besides JSON
+      response.write (if is_string content then content else to_json content)
       response.end()
 
     context.error = (error) ->

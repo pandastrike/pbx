@@ -22,7 +22,7 @@
     "pirate": "^1.0.0-alpha-05"
   },
   "dependencies": {
-    "fairmont": "^0.8.2",
+    "fairmont": "^1.0.0-alpha-17",
     "jsck": "^0.2.1",
     "routington": "^1.0.2",
     "shred": "^1.1.0-alpha-04",
