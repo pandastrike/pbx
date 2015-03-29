@@ -7,6 +7,10 @@ make_key = -> (require "key-forge").randomKey 16, "base64url"
 
 adapter = Memory.Adapter.make()
 
+# TODO:
+# - check to make sure blog creation doesn't overwrite an existing blog
+# - associate tokens with blogs and check authorization tokens
+
 module.exports = async ->
 
   blogs = yield adapter.collection "blogs"
@@ -18,7 +22,9 @@ module.exports = async ->
       {name} = blog
       blog.posts = {}
       yield blogs.put name, blog
-      respond 201, "", location: url "blog", {name}
+      respond 201, "",
+        location: url "blog", {name}
+        token: make_key()
 
   blog:
 

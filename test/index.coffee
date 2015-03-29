@@ -1,9 +1,5 @@
 assert = require "assert"
 {describe} = require "amen"
-{liftAll} = require "when/node"
-{readFile} = (liftAll (require "fs"))
-{resolve, join} = require "path"
-YAML = require "js-yaml"
 
 describe "PBX", (context) ->
 
@@ -11,6 +7,14 @@ describe "PBX", (context) ->
 
     {Builder} = require "../src"
     builder = new Builder "test"
+
+    builder.define "author",
+      path: "/author"
+      query:
+        email: type: "string", required: true
+    .get()
+    .put()
+    .delete()
 
     builder.define "blogs"
     .post as: "create", creates: "blog"
@@ -23,7 +27,8 @@ describe "PBX", (context) ->
 
     builder.define "post", template: "/blog/:key/:index"
     .get()
-    .put()
+    .put
+      authorization: true
     .delete()
 
     # Test case for issue #15 -- this fails without the patch
@@ -33,56 +38,114 @@ describe "PBX", (context) ->
 
     assert builder.api.resources.blogs?
 
-    context.test "Classify", ->
+    {classifier} = require "../src"
+    classify = classifier builder.api
 
-      {classifier} = require "../src"
-      classify = classifier builder.api
+    context.test "Classify", (context) ->
 
-      request =
-        url: "/blog/my-blog"
-        method: "GET"
-        headers:
-          accept: "application/vnd.test.blog+json"
+      context.test "Simple GET request", ->
+        request =
+          url: "/blog/my-blog"
+          method: "GET"
+          headers:
+            accept: "application/vnd.test.blog+json"
 
-      match = classify request
-      assert.equal match.resource.name, "blog"
-      assert.equal match.path.key, "my-blog"
-      assert.equal match.action.name, "get"
+        match = classify request
+        assert.equal match.resource.name, "blog"
+        assert.equal match.path.key, "my-blog"
+        assert.equal match.action.name, "get"
 
-    # fold this into the example API
-    context.test "Classify with query parameters", ->
-      {classifier} = require "../src"
-      classify = classifier
-        mappings:
-          user:
-            resource: "user"
-            path: "/users"
-            query:
-              login:
-                required: true
-                type: "string"
-        resources:
-          user:
-            actions:
-              get:
-                method: "GET"
-                response:
-                  type: "application/json"
-                  status: 200
-        schema:
-          definitions:
-            user:
-              mediaType: "application/json"
+      context.test "With bad URL", ->
+        try
+          classify
+            url: "/blurg"
+            method: "GET"
+            headers:
+              accept: "application/vnd.test.author+json"
+          assert false
+        catch error
+          assert error.status == "404"
+          assert error.message == "Not Found"
 
-      match = classify
-        url: "/users?login=dyoder"
-        method: "GET"
-        headers:
-          accept: "application/json"
+      context.test "With bad accept header", ->
+        try
+          classify
+            url: "/blog/my-blog"
+            method: "GET"
+            headers: {}
+          assert false
+        catch error
+          assert error.status == "406"
+          assert error.message == "Not Acceptable"
 
-      assert.equal match.resource.name, "user"
-      assert.equal match.query.login, "dyoder"
-      assert.equal match.action.name, "get"
+      context.test "With content-type header", ->
+        match = classify
+          url: "/blog/my-blog"
+          method: "POST"
+          headers:
+            "content-type": "application/vnd.test.post+json"
+        assert.equal match.resource.name, "blog"
+        assert.equal match.path.key, "my-blog"
+        assert.equal match.action.name, "post"
+
+      context.test "With bad content-type header", ->
+        try
+          classify
+            url: "/blog/my-blog"
+            method: "POST"
+            headers: {}
+          assert false
+        catch error
+          assert error.status == "415"
+          assert error.message == "Unsupported Media Type"
+
+      context.test "With query parameters", ->
+
+        match = classify
+          url: "/author?email=danielyoder@gmail.com"
+          method: "GET"
+          headers:
+            accept: "application/vnd.test.author+json"
+
+        assert.equal match.resource.name, "author"
+        assert.equal match.query.email, "danielyoder@gmail.com"
+        assert.equal match.action.name, "get"
+
+      context.test "With missing query parameter", ->
+        try
+          classify
+            url: "/author"
+            method: "GET"
+            headers:
+              accept: "application/vnd.test.author+json"
+          assert false
+        catch error
+          assert error.status == "404"
+          assert error.message == "Not Found"
+
+      context.test "With authorization header", ->
+        match = classify
+          url: "/blog/my-blog/my-post"
+          method: "PUT"
+          headers:
+            "content-type": "application/vnd.test.post+json"
+            authorization: "token 12345"
+
+        assert.equal match.resource.name, "post"
+        assert.equal match.action.name, "put"
+
+      context.test "With bad authorization header", ->
+        try
+          classify
+            url: "/blog/my-blog/my-post"
+            method: "PUT"
+            headers:
+              "content-type": "application/vnd.test.post+json"
+          assert false
+        catch error
+          console.log error
+          assert error.status == "401"
+          assert error.message == "Unauthorized"
 
     context.test "Client", ->
 

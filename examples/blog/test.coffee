@@ -9,7 +9,7 @@ amen.describe "Example blogging API", (context) ->
 
     api = yield discover "http://localhost:8080"
 
-    {response: {headers: {location}}} =
+    {response: {headers: {token, location}}} =
       (yield api.blogs.create name: "my-blog", title: "My Blog")
 
     blog = (api.blog location)
@@ -17,15 +17,16 @@ amen.describe "Example blogging API", (context) ->
     context.test "Create a post", ->
 
       {response: {headers: {location}}} =
-        (yield blog.post
-          key: "my-first-post"
-          title: "My First Post"
-          content: "This is my very first post.")
+        yield blog.post
+          .authorize token: token
+          .invoke
+            key: "my-first-post"
+            title: "My First Post"
+            content: "This is my very first post."
 
       post = (api.post location)
 
       context.test "Get a post", ->
-
         {data} = yield post.get()
         {title, content, key} = yield data
         assert key == "my-first-post"
@@ -35,9 +36,11 @@ amen.describe "Example blogging API", (context) ->
       context.test "Modify a post", ->
 
         {response: {statusCode}} = yield post.put
-          key: "my-first-post"
-          title: "My first updated post"
-          content: "This is my very first post update."
+          .authorize token: token
+          .invoke
+            key: "my-first-post"
+            title: "My first updated post"
+            content: "This is my very first post update."
 
         assert statusCode == 200
 

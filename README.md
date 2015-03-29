@@ -45,7 +45,6 @@ First, let's define our API:
 
 ```coffee
 {Builder} = require "pbx"
-
 builder.define "blogs",
   path: "/blogs"
 .post
@@ -55,10 +54,11 @@ builder.define "blogs",
 builder.define "blog",
   template: "/blogs/:name"
 .get()
-.put()
-.delete()
+.put authorization: true
+.delete  authorization: true
 .post
   creates: "post"
+  authorization: true
 .schema
   required: ["name", "title"]
   properties:
@@ -68,8 +68,8 @@ builder.define "blog",
 builder.define "post",
   template: "/blog/:name/:key"
 .get()
-.put()
-.delete()
+.put authorization: true
+.delete authorization: true
 .schema
   required: ["key", "title", "content"]
   properties:
@@ -82,7 +82,7 @@ builder.reflect()
 module.exports = builder.api
 ```
 
-This API allows to create blogs, view and update them, and delete them. We can also do the same for posts within a blog. We also added reflection to our API, which means the Patchboard API definition is available via a `GET` request to `/`.
+This API allows to create blogs, view and update them, and delete them. We can also do the same for posts within a blog. Requests that update our blog require authorization. We also added reflection to our API, which means the Patchboard API definition is available via a `GET` request to `/`.
 
 For example, if we have a blog named `my-blog` and a post named `pbx-example`, the API above would allow us to read that post with the following `curl` command:
 

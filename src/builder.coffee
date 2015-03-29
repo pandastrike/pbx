@@ -18,12 +18,16 @@ class Builder
                 format: "uri"
                 readonly: true
 
-  define: (name, {path, template}={}) ->
+  define: (name, {url, path, template, query}={}) ->
     if template?
       @map name, {template}
+    else if url?
+      @map name, {url: url}
     else
       path ?= "/#{name}"
       @map name, {path}
+    if query?
+      @map name, {query}
     @_schema(name)
     proxy =
       get: (options={}) => @get name, options; proxy
@@ -35,8 +39,7 @@ class Builder
         @
 
   map: (name, spec) ->
-    @api.mappings[name] ?= merge spec,
-      resource: name
+    include (@api.mappings[name] ?= resource: name), spec
     @
 
   _actions: (name) ->
@@ -52,7 +55,7 @@ class Builder
 
   media_type: (name) -> "application/vnd.#{@name}.#{name}+json"
 
-  get: (name, {as, type, description}={}) ->
+  get: (name, {as, type, authorization, description}={}) ->
     as ?= "get"
     type ?= "application/vnd.#{@name}.#{name}+json"
     description ?= if @api.mappings[name].template?
@@ -63,32 +66,34 @@ class Builder
     @_actions(name)[as] =
       description: description
       method: "GET"
+      request: {authorization}
       response:
         type: type
         status: 200
     @
 
-  put: (name, {as, type, description}={}) ->
+  put: (name, {as, type, authorization, description}={}) ->
     as ?= "put"
     type ?= "application/vnd.#{@name}.#{name}+json"
     description ?= "Updates a #{name} resource with the given key"
     @_actions(name)[as] =
       description: description
       method: "PUT"
-      request: type: type
+      request: {type, authorization}
       response: status: 200
     @
 
-  delete: (name, {as, description}={}) ->
+  delete: (name, {as, authorization, description}={}) ->
     as ?= "delete"
     description ?= "Deletes a #{name} resource with the given key"
     @_actions(name)[as] =
       description: description
       method: "DELETE"
+      request: {authorization}
       response: status: 200
     @
 
-  post: (name, {as, type, creates, description}={}) ->
+  post: (name, {as, type, authorization, creates, description}={}) ->
     as ?= "post"
     if creates?
       type ?= "application/vnd.#{@name}.#{creates}+json"
@@ -97,7 +102,7 @@ class Builder
       @_actions(name)[as] =
         description: description
         method: "POST"
-        request: {type}
+        request: {type, authorization}
         response: status: 201
     else
       description ?= "" # maybe issue a warning here? throw?
@@ -108,7 +113,7 @@ class Builder
         description: description
         method: "POST"
         request:
-          type: type.request
+          type: type.request, authorization
         response:
           type: type.response
           status: 200
