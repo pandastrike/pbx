@@ -1,3 +1,4 @@
+{w, first} = require "fairmont"
 errors = require "./errors"
 JSCK = require("jsck").draft3
 
@@ -35,26 +36,44 @@ module.exports = (api) ->
     for aname, action of resource.actions
       node.resource.actions[action.method.toUpperCase()] = action
       action.name = aname
+
   url = require "url"
 
-  (request) ->
+  {not_found, method_not_allowed, not_acceptable,
+    unsupported_media_type, unauthorized} = errors
+
+  throws = (f, g) ->
+    (args...) -> if  (r = g args...)? then r else throw f()
+
+  match_url = throws errors.not_found, (request) ->
     {pathname, query} = (url.parse request.url, true)
     path = pathname
     if (route = router.match path)?
       {node: {resource}, param} = route
       if (resource.query.validate query)
         match = { resource, path: param, query }
-        if (match.action = resource?.actions?[request.method])?
-          if (acceptable request.headers.accept, match.action.response?.type)
-            if request.headers["content-type"] == match.action.request?.type
-              match
-            else
-              throw errors.unsupported_media_type()
-          else
-            throw errors.not_acceptable()
-        else
-          throw errors.method_not_allowed()
-      else
-        throw errors.not_found()
+        {resource, path: param, query}
+
+  match_action = throws method_not_allowed, (request, match) ->
+    match if (match.action = match.resource?.actions?[request.method])?
+
+  match_accept = throws not_acceptable, (request, match) ->
+    match if (acceptable request.headers.accept, match.action.response?.type)
+
+  match_content = throws unsupported_media_type, (request, match) ->
+    match if request.headers["content-type"] == match.action.request?.type
+
+  match_auth = throws unauthorized, (request, match) ->
+    if (authorization = match.action.request?.authorization)?
+      if (header = request.headers["authorization"])?
+        # TODO Add auth scheme to match
+        match if (authorization == true) || ((first w header) == authorization)
     else
-      throw errors.not_found()
+      match
+
+  (request) ->
+    match_auth request,
+      match_content request,
+        match_accept request,
+          match_action request,
+            match_url request
