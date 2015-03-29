@@ -10,10 +10,11 @@ builder.define "blogs",
 builder.define "blog",
   template: "/blogs/:name"
 .get()
-.put()
-.delete()
+.put authorization: true
+.delete  authorization: true
 .post
   creates: "post"
+  authorization: true
 .schema
   required: ["name", "title"]
   properties:
@@ -23,8 +24,8 @@ builder.define "blog",
 builder.define "post",
   template: "/blog/:name/:key"
 .get()
-.put()
-.delete()
+.put authorization: true
+.delete authorization: true
 .schema
   required: ["key", "title", "content"]
   properties:
