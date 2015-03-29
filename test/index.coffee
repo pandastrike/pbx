@@ -144,7 +144,6 @@ describe "PBX", (context) ->
               "content-type": "application/vnd.test.post+json"
           assert false
         catch error
-          console.log error
           assert error.status == "401"
           assert error.message == "Unauthorized"
 

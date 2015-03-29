@@ -1,6 +1,6 @@
 {
   "name": "pbx",
-  "version": "1.0.0-alpha-16",
+  "version": "1.0.0-alpha-17",
   "description": "Modular server implementation based on Patchboard API schema",
   "main": "lib/index.js",
   "scripts": {
@@ -25,7 +25,7 @@
     "fairmont": "^1.0.0-alpha-17",
     "jsck": "^0.2.1",
     "routington": "^1.0.2",
-    "shred": "^1.1.0-alpha-04",
+    "shred": "^1.1.0-alpha-06",
     "when": "^3.6.3"
   },
   "engines": {
