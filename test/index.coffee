@@ -31,6 +31,9 @@ describe "PBX", (context) ->
       authorization: true
     .delete()
 
+    # Test case for issue #15 -- this fails without the patch
+    builder.define("test").post()
+
     builder.reflect()
 
     assert builder.api.resources.blogs?
