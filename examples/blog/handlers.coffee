@@ -18,7 +18,9 @@ module.exports = async ->
       {name} = blog
       blog.posts = {}
       yield blogs.put name, blog
-      respond 201, "", location: url "blog", {name}
+      respond 201, "",
+        location: url "blog", {name}
+        token: make_key()
 
   blog:
 

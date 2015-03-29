@@ -63,7 +63,7 @@ module.exports = (api) ->
   match_content = throws unsupported_media_type, (request, match) ->
     match if request.headers["content-type"] == match.action.request?.type
 
-  match_auth = throws unauthorized, (request, match) ->
+  match_authorization = throws unauthorized, (request, match) ->
     if (authorization = match.action.request?.authorization)?
       if (header = request.headers["authorization"])?
         # TODO Add auth scheme to match
@@ -72,7 +72,7 @@ module.exports = (api) ->
       match
 
   (request) ->
-    match_auth request,
+    match_authorization request,
       match_content request,
         match_accept request,
           match_action request,
