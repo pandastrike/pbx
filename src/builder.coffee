@@ -1,4 +1,4 @@
-{include, merge} = require "fairmont"
+{properties, include, merge} = require "fairmont"
 
 class Builder
 
@@ -28,15 +28,19 @@ class Builder
       @map name, {path}
     if query?
       @map name, {query}
-    @_schema(name)
     proxy =
       get: (options={}) => @get name, options; proxy
       put: (options={}) => @put name, options; proxy
       delete: (options={}) => @delete name, options; proxy
       post: (options={}) => @post name, options; proxy
-      schema: (definition) =>
-        include @api.schema.definitions[name], definition
-        @
+      schema: (args...) =>
+        if args.length == 1
+          [definition] = args
+          _name = name
+        else
+          [_name, definition] = args
+        include @_schema(_name), definition
+        proxy
 
   map: (name, spec) ->
     include (@api.mappings[name] ?= resource: name), spec
@@ -57,30 +61,30 @@ class Builder
 
   get: (name, {as, type, authorization, description}={}) ->
     as ?= "get"
-    type ?= "application/vnd.#{@name}.#{name}+json"
+    type ?= name
     description ?= if @api.mappings[name].template?
       "Returns a #{name} resource with the given key"
     else
       "Returns the #{name} resource"
 
-    @_actions(name)[as] =
+    action = @_actions(name)[as] =
       description: description
       method: "GET"
       request: {authorization}
-      response:
-        type: type
-        status: 200
+      response: status: 200
+    properties action.response, type: get: => @_schema(type).mediaType
     @
 
   put: (name, {as, type, authorization, description}={}) ->
     as ?= "put"
-    type ?= "application/vnd.#{@name}.#{name}+json"
+    type ?= name
     description ?= "Updates a #{name} resource with the given key"
-    @_actions(name)[as] =
+    action = @_actions(name)[as] =
       description: description
       method: "PUT"
-      request: {type, authorization}
+      request: {authorization}
       response: status: 200
+    properties action.request, type: get: => @_schema(type).mediaType
     @
 
   delete: (name, {as, authorization, description}={}) ->
@@ -96,32 +100,35 @@ class Builder
   post: (name, {as, type, authorization, creates, description}={}) ->
     as ?= "post"
     if creates?
-      type ?= "application/vnd.#{@name}.#{creates}+json"
+      type ?= creates
       description ?=  "Creates a #{name} resource whose
         URL will be returned in the location header"
-      @_actions(name)[as] =
+      action = @_actions(name)[as] =
         description: description
         method: "POST"
-        request: {type, authorization}
+        request: {authorization}
         response: status: 201
+      properties action.request, type: get: => @_schema(type).mediaType
     else
       description ?= "" # maybe issue a warning here? throw?
       type ?=
-        request: "application/vnd.#{@name}.#{name}+json"
-        response: "application/vnd.#{@name}.#{name}+json"
-      @_actions(name)[as] =
+        request: name
+        response: name
+      action = @_actions(name)[as] =
         description: description
         method: "POST"
-        request: {type: type.request, authorization}
-        response:
-          type: type.response
-          status: 200
+        request: {authorization}
+        response: status: 200
+      properties action.request,
+        type: get: => @_schema(type.request).mediaType
+      properties action.response,
+        type: get: => @_schema(type.response).mediaType
       @
 
   reflect: ->
-    @map "description", path: "/"
-    @get "description",
-      type: "application/json"
+    @define "description", path: "/"
+    .schema mediaType: "application/json", type: undefined
+    .get "description",
       description: "Returns a description of the API"
 
 module.exports = Builder
