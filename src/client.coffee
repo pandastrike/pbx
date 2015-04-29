@@ -19,9 +19,11 @@ describe = (url, api) ->
     do (rname, description) ->
       root[rname] = (resource) ->
         {template, path, query} = api.mappings[rname]
-        # TODO: add support for query params
+        query_string = if query?
+          "{?" + ("#{key}" for key of query).join(",") + "}"
+        else ""
         if path?
-          resource path, description
+          resource "#{path}#{query_string}", description
         else if template?
           components = for component in (template.split "/")[1..]
             if component[0] == ":"
@@ -29,7 +31,7 @@ describe = (url, api) ->
               "{#{key}}"
             else
               component
-          resource ("/" + components.join "/"), description
+          resource ("/" + components.join("/") + query_string), description
 
   resource url, root
 

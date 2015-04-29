@@ -75,12 +75,15 @@ module.exports = class Context
         JSON.parse yield context.body
 
     context.validate = async =>
-      {valid, errors} =
-        validate context.match.action.request.type, (yield context.data)
-      if !valid
-        # TODO: add errors to message
-        # JSON.stringify(errors, null, 2)
-        context.respond.bad_request()
-      valid
+      if context.match.action.request.type?
+        {valid, errors} =
+          validate context.match.action.request.type, (yield context.data)
+        if !valid
+          # TODO: add errors to message
+          # JSON.stringify(errors, null, 2)
+          context.respond.bad_request()
+        valid
+      else
+        true
 
     context
