@@ -3,6 +3,7 @@ async = (require "when/generator").lift
 JSCK = require("jsck").draft4
 Context = require "./context"
 classifier = require "./classifier"
+scribe = require "./scribe"
 
 module.exports = async (api, initialize) ->
 
@@ -13,9 +14,20 @@ module.exports = async (api, initialize) ->
     handlers = (yield (resolve initialize(api)))
 
     if api.resources.description?
+      {to_html, to_markdown} = yield scribe.create()
       handlers.description ?=
-        get: (context) ->
-          context.respond 200, api
+        get: async ({request, respond}) ->
+          {accept} = request.headers
+          accept ?= "text/plain"
+          if accept.match /json/
+            respond 200, api,
+              "content-type": "application/json"
+          else if accept.match /html/
+            respond 200, (yield to_html api),
+              "content-type": "text/html"
+          else
+            respond 200, (yield to_markdown api),
+              "content-type": "text/plain"
 
     api.schema.validate = do ->
       jsck = (new JSCK api.schema )

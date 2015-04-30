@@ -49,7 +49,7 @@ describe "PBX", (context) ->
           url: "/blog/my-blog"
           method: "GET"
           headers:
-            accept: "application/vnd.test.blog+json"
+            accept: builder.media_type "blog"
 
         match = classify request
         assert.equal match.resource.name, "blog"
@@ -62,7 +62,7 @@ describe "PBX", (context) ->
             url: "/blurg"
             method: "GET"
             headers:
-              accept: "application/vnd.test.author+json"
+              accept: builder.media_type "author"
           assert false
         catch error
           assert error.status == "404"
@@ -73,7 +73,8 @@ describe "PBX", (context) ->
           classify
             url: "/blog/my-blog"
             method: "GET"
-            headers: {}
+            headers:
+              accept: "foobar"
           assert false
         catch error
           assert error.status == "406"
@@ -84,7 +85,7 @@ describe "PBX", (context) ->
           url: "/blog/my-blog"
           method: "POST"
           headers:
-            "content-type": "application/vnd.test.post+json"
+            "content-type": builder.media_type "post"
         assert.equal match.resource.name, "blog"
         assert.equal match.path.key, "my-blog"
         assert.equal match.action.name, "post"
@@ -106,7 +107,7 @@ describe "PBX", (context) ->
           url: "/author?email=danielyoder@gmail.com"
           method: "GET"
           headers:
-            accept: "application/vnd.test.author+json"
+            accept: builder.media_type "author"
 
         assert.equal match.resource.name, "author"
         assert.equal match.query.email, "danielyoder@gmail.com"
@@ -118,7 +119,7 @@ describe "PBX", (context) ->
             url: "/author"
             method: "GET"
             headers:
-              accept: "application/vnd.test.author+json"
+              accept: builder.media_type "author"
           assert false
         catch error
           assert error.status == "404"
@@ -129,7 +130,7 @@ describe "PBX", (context) ->
           url: "/blog/my-blog/my-post"
           method: "PUT"
           headers:
-            "content-type": "application/vnd.test.post+json"
+            "content-type": builder.media_type "post"
             authorization: "token 12345"
 
         assert.equal match.resource.name, "post"
@@ -141,7 +142,7 @@ describe "PBX", (context) ->
             url: "/blog/my-blog/my-post"
             method: "PUT"
             headers:
-              "content-type": "application/vnd.test.post+json"
+              "content-type": builder.media_type "post"
           assert false
         catch error
           assert error.status == "401"
@@ -182,7 +183,7 @@ describe "PBX", (context) ->
       {describe} = (require "../src").client
       client = describe "http://localhost", builder.api
 
-      assert.equal "curl -v -XGET http://localhost/blog/my-blog -H'accept: application/vnd.test.blog+json'",
+      assert.equal "curl -v -XGET http://localhost/blog/my-blog -H'accept: #{builder.media_type "blog"}'",
         client
         .blog key: "my-blog"
         .get

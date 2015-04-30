@@ -1,9 +1,11 @@
-{properties, include, merge} = require "fairmont"
+mime = require "mime-db"
+{properties, include, merge, is_array, cat} = require "fairmont"
 
 class Builder
 
   constructor: (@name, @api) ->
     @api ?=
+      name: @name
       mappings: {}
       resources: {}
       schema:
@@ -18,7 +20,8 @@ class Builder
                 format: "uri"
                 readonly: true
 
-  define: (name, {url, path, template, query}={}) ->
+  define: (name, {url, path, template, query, description}={}) ->
+    @api.resources[name] = {name, description}
     if template?
       @map name, {template}
     else if url?
@@ -50,14 +53,24 @@ class Builder
     resource = @api.resources[name] ?= {}
     resource.actions ?= {}
 
-  _schema: (name) ->
+  _schema: (name, version="1.0") ->
     @api.schema.definitions[name] ?=
       extends: {$ref: "urn:#{@name}#resource"}
-      mediaType: (@media_type name)
+      mediaType:
+        "application/vnd.#{@name}.#{name}+json;
+        version=#{version};
+        charset=UTF-8"
       id: "##{name}"
       type: "object"
 
-  media_type: (name) -> "application/vnd.#{@name}.#{name}+json"
+  media_type: (name, version) ->
+    if is_array name
+      names = name
+      (@media_type name, version) for name in names
+    else if !version? && mime[name]?
+      name
+    else
+      @_schema(name, version).mediaType
 
   get: (name, {as, type, authorization, description}={}) ->
     as ?= "get"
@@ -71,8 +84,7 @@ class Builder
       description: description
       method: "GET"
       request: {authorization}
-      response: status: 200
-    properties action.response, type: get: => @_schema(type).mediaType
+      response: status: 200, type: @media_type(type)
     @
 
   put: (name, {as, type, authorization, description}={}) ->
@@ -82,9 +94,8 @@ class Builder
     action = @_actions(name)[as] =
       description: description
       method: "PUT"
-      request: {authorization}
+      request: {authorization, type: @media_type(type)}
       response: status: 200
-    properties action.request, type: get: => @_schema(type).mediaType
     @
 
   delete: (name, {as, authorization, description}={}) ->
@@ -106,9 +117,8 @@ class Builder
       action = @_actions(name)[as] =
         description: description
         method: "POST"
-        request: {authorization}
+        request: {authorization, type: @media_type(type)}
         response: status: 201
-      properties action.request, type: get: => @_schema(type).mediaType
     else
       description ?= "" # maybe issue a warning here? throw?
       type ?=
@@ -119,16 +129,22 @@ class Builder
         method: "POST"
         request: {authorization}
         response: status: 200
-      properties action.request,
-        type: get: => @_schema(type.request).mediaType
-      properties action.response,
-        type: get: => @_schema(type.response).mediaType
+      if type.request?
+        action.request.type = @media_type(type.request)
+      if type.response?
+        action.response.type = @media_type(type.response)
       @
 
   reflect: ->
-    @define "description", path: "/"
-    .schema mediaType: "application/json", type: undefined
-    .get "description",
+    @define "description",
+      description: "A description of the API"
+      path: "/"
+    .get
       description: "Returns a description of the API"
+      type: [
+          "application/json"
+          "text/html"
+          "text/plain"
+        ]
 
 module.exports = Builder

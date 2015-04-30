@@ -32,12 +32,15 @@ module.exports = class Context
       response.statusCode = status
       content ?= "" # turn explicit null into ""
 
+      # TODO: Rethink the logic here a bit. In particular,
+      # how to determine the expected response type when there
+      # are multiple supported formats.
       if context.match?.action?.response?
         expected = context.match.action.response
         # attempt to set the content-type based on the API definition
         # presuming we're dealing with the expected response
         if status == expected.status && expected.type?
-          headers["content-type"] = expected.type
+          headers["content-type"] ?= expected.type
 
         # otherwise, don't set the content-type unless it's something
         # besides an empty string and it isn't already set...

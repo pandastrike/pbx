@@ -1,10 +1,19 @@
-{w, first} = require "fairmont"
+{w, first, is_array, is_string} = require "fairmont"
 errors = require "./errors"
 JSCK = require("jsck").draft3
 
 # TODO: make this more sophisticated
+# Negotiator takes a stab at all the parsing, but you have to use
+# it on the request. We should perhaps do that for dealing with
+# charsets, encodings, ...
 acceptable = (header, definition) ->
-  header == "*/*" || header == definition
+  header == definition ||
+    ((is_string header) && (header.indexOf "*/*") != -1) ||
+    ((is_array definition) && (header in definition))
+
+supported = (header, definition) ->
+  (header == definition) ||
+    (is_array definition && header in definition)
 
 validator = (schema) ->
   if schema?
@@ -61,7 +70,8 @@ module.exports = (api) ->
     match if (acceptable request.headers.accept, match.action.response?.type)
 
   match_content = throws unsupported_media_type, (request, match) ->
-    match if request.headers["content-type"] == match.action.request?.type
+    match if (supported request.headers["content-type"],
+                match.action.request?.type)
 
   match_authorization = throws unauthorized, (request, match) ->
     if (authorization = match.action.request?.authorization)?
