@@ -14,6 +14,16 @@ for `<%= @name %>`
 `<%= @mappings[rname].path %>`
 <% end %>
 
+<% if (@mappings[rname].query)? :%>
+
+##### Query Parameters
+
+<% for key, value of @mappings[rname].query: %>
+- `<%= key %>` <%= value.description %>
+<% end %>
+
+<% end %>
+
 <% if (@mappings[rname].template)? :%>
 `<%= @mappings[rname].template %>`
 <% end %>
@@ -22,7 +32,7 @@ for `<%= @name %>`
 
 <% for aname, action of resource.actions: %>
 
-* `<%= aname %>` &mdash; <%= action.description %>
+* `<%= aname %>` <%= action.description %>
 
 <% if action.request?.type? : %>
 Request content-type(s): `<%= action.response.type %>`.
