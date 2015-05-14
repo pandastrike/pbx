@@ -28,7 +28,7 @@
     "marked": "^0.3.3",
     "mime-db": "^1.9.1",
     "routington": "^1.0.2",
-    "shred": "^1.1.0-alpha-06",
+    "shred": "^1.1.0-alpha-07",
     "when": "^3.6.3"
   },
   "engines": {
