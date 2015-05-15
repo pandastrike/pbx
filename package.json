@@ -2,7 +2,7 @@
   "name": "pbx",
   "version": "1.0.0-beta-05",
   "description": "Modular server implementation based on Patchboard API schema",
-  "main": "lib/index.js",
+  "main": "src/index.coffee",
   "scripts": {
     "prepublish": "coffee --nodejs --harmony --compile -o ./lib ./src",
     "watch": "coffee --nodejs --harmony --compile --watch -o lib/ ./src",
@@ -28,7 +28,7 @@
     "marked": "^0.3.3",
     "mime-db": "^1.9.1",
     "routington": "^1.0.2",
-    "shred": "pandastrike/shred#huxley",
+    "shred": "1.1.0-alpha-06",
     "when": "^3.6.3"
   },
   "engines": {
