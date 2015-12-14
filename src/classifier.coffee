@@ -1,4 +1,4 @@
-{w, first, is_array, is_string} = require "fairmont"
+{w, first, isArray, isString} = require "fairmont"
 errors = require "./errors"
 JSCK = require("jsck").draft3
 
@@ -8,12 +8,12 @@ JSCK = require("jsck").draft3
 # charsets, encodings, ...
 acceptable = (header, definition) ->
   header == definition ||
-    ((is_string header) && (header.indexOf "*/*") != -1) ||
-    ((is_array definition) && (header in definition))
+    ((isString header) && (header.indexOf "*/*") != -1) ||
+    ((isArray definition) && (header in definition))
 
 supported = (header, definition) ->
   (header == definition) ||
-    (is_array definition && header in definition)
+    (isArray definition && header in definition)
 
 validator = (schema) ->
   if schema?
@@ -54,7 +54,7 @@ module.exports = (api) ->
   throws = (f, g) ->
     (args...) -> if  (r = g args...)? then r else throw f()
 
-  match_url = throws errors.not_found, (request) ->
+  matchURL = throws errors.not_found, (request) ->
     {pathname, query} = (url.parse request.url, true)
     path = pathname
     if (route = router.match path)?
@@ -63,17 +63,17 @@ module.exports = (api) ->
         match = { resource, path: param, query }
         {resource, path: param, query}
 
-  match_action = throws method_not_allowed, (request, match) ->
+  matchAction = throws method_not_allowed, (request, match) ->
     match if (match.action = match.resource?.actions?[request.method])?
 
-  match_accept = throws not_acceptable, (request, match) ->
+  matchAccept = throws not_acceptable, (request, match) ->
     match if (acceptable request.headers.accept, match.action.response?.type)
 
-  match_content = throws unsupported_media_type, (request, match) ->
+  matchContent = throws unsupported_media_type, (request, match) ->
     match if (supported request.headers["content-type"],
                 match.action.request?.type)
 
-  match_authorization = throws unauthorized, (request, match) ->
+  matchAuthorization = throws unauthorized, (request, match) ->
     if (authorization = match.action.request?.authorization)?
       if (header = request.headers["authorization"])?
         # TODO Add auth scheme to match
@@ -82,8 +82,8 @@ module.exports = (api) ->
       match
 
   (request) ->
-    match_authorization request,
-      match_content request,
-        match_accept request,
-          match_action request,
-            match_url request
+    matchAuthorization request,
+      matchContent request,
+        matchAccept request,
+          matchAction request,
+            matchURL request

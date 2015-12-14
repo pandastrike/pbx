@@ -1,6 +1,6 @@
 assert = require "assert"
 {describe} = require "amen"
-{is_string, deep_equal} = require "fairmont"
+{isString, deepEqual} = require "fairmont"
 
 describe "PBX", (context) ->
 
@@ -173,10 +173,10 @@ describe "PBX", (context) ->
           ctx = Context.make {request, response, api: builder.api}
           ctx.respond 200, data
           # TODO: this test is not functional enough
-          if is_string data
+          if isString data
             assert data == response.content
           else
-            assert deep_equal data, JSON.parse response.content
+            assert deepEqual data, JSON.parse response.content
 
     context.test "Client", ->
 

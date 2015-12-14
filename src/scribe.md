@@ -6,7 +6,7 @@ for `<%= @name %>`
 
 <% for rname, resource of @resources: %>
 
-### <%= @title_case @plain_text rname %>
+### <%= @titleCase @plainText rname %>
 
 <%= resource.description %>
 

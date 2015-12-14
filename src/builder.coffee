@@ -1,5 +1,5 @@
 mime = require "mime-db"
-{properties, include, merge, is_array, cat} = require "fairmont"
+{properties, include, merge, isArray, cat} = require "fairmont"
 
 class Builder
 
@@ -64,7 +64,7 @@ class Builder
       type: "object"
 
   media_type: (name, version) ->
-    if is_array name
+    if isArray name
       names = name
       (@media_type name, version) for name in names
     else if !version? && mime[name]?

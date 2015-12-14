@@ -1,9 +1,9 @@
-{include, is_string} = require "fairmont"
+{include, isString} = require "fairmont"
 {promise} = require "when"
 {call, lift} = require "when/generator"
 async = lift
 {resolve} = require "url"
-to_json = (x) -> JSON.stringify x, null, 2
+toJSON = (x) -> JSON.stringify x, null, 2
 
 
 # TODO: convert this to a real class definition
@@ -26,7 +26,7 @@ module.exports = class Context
         else
           component
 
-      resolve context.api.base_url, (components.join "/")
+      resolve context.api.baseURL, (components.join "/")
 
     context.respond = (status, content="", headers={}) ->
       response.statusCode = status
@@ -52,7 +52,7 @@ module.exports = class Context
 
       # TODO: allow for responding with a stream
       # TODO: allow for other formatting conventions besides JSON
-      response.write (if is_string content then content else to_json content)
+      response.write (if isString content then content else toJSON content)
       response.end()
 
     context.error = (error) ->
